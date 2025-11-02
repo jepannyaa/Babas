@@ -1,154 +1,114 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>ID Card Generator</title>
+<meta charset="UTF-8">
+<title>Generate ID Card</title>
+
+<!-- html2canvas untuk download sebagai gambar -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
 <style>
   body {
-    font-family: Arial, sans-serif;
-    background-color: #f0f0f0;
-    padding: 20px;
-  }
-  h1 {
-    text-align: center;
-  }
-  form {
-    max-width: 400px;
-    margin: 0 auto 20px auto;
-    padding: 20px;
-    background-color: white;
-    border-radius: 8px;
-  }
-  input[type="text"], input[type="file"] {
-    width: 100%;
-    padding: 10px;
-    margin-top: 10px;
-    margin-bottom: 20px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-  }
-  button {
-    width: 100%;
-    padding: 12px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  button:hover {
-    background-color: #45a049;
-  }
-  #idCardContainer {
-    display: flex;
-    justify-content: center;
-    margin-top: 20px;
-  }
-  #idCard {
-    width: 300px;
-    height: 400px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    border-radius: 15px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    position: relative;
-    padding: 20px;
-    box-sizing: border-box;
-    color: #fff;
-    font-family: 'Arial Rounded MT Bold', Arial, sans-serif;
+    font-family: 'Arial', sans-serif;
     display: flex;
     flex-direction: column;
     align-items: center;
+    padding-top: 40px;
+    background: linear-gradient(135deg, #0a0a0a, #1a1f3c);
+    color: white;
   }
-  #pfpPreview {
+
+  .form-box {
+    width: 300px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(15px);
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 0 25px rgba(0,0,0,0.4);
+  }
+
+  input[type="text"], input[type="file"] {
+    width: 100%;
+    margin-top: 6px;
+    margin-bottom: 16px;
+    padding: 10px;
+    border-radius: 6px;
+    border: none;
+  }
+
+  button {
+    width: 100%;
+    padding: 10px;
+    background: #6e00ff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 15px;
+  }
+
+  button:hover { opacity: 0.85; }
+
+  /* CARD DESIGN */
+  #resultCard {
+    margin-top: 30px;
+    width: 320px;
+    padding: 20px;
+    border-radius: 18px;
+    display: none;
+    text-align: center;
+
+    /* Glassmorphism */
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+
+    /* Glow Aesthetic */
+    box-shadow: 0 0 25px rgba(110, 0, 255, 0.5), 
+                inset 0 0 15px rgba(255,255,255,0.1);
+  }
+
+  #pfpFinal {
     width: 120px;
     height: 120px;
     border-radius: 50%;
     object-fit: cover;
-    border: 4px solid #fff;
-    margin-bottom: 15px;
-  }
-  #usernameDisplay {
-    font-size: 24px;
-    font-weight: bold;
+    border: 4px solid #6e00ff;
     margin-bottom: 10px;
+    box-shadow: 0 0 15px #6e00ff;
+  }
+
+  .download-btn {
+    margin-top: 15px;
+    background: #00d8ff;
   }
 </style>
+
 </head>
 <body>
 
-<h1>ID Card Generator</h1>
+<div class="form-box">
+  <label>Username :</label>
+  <input type="text" id="username" placeholder="Masukkan username kamu...">
 
-<form id="userForm">
-  <label for="username">Username:</label>
-  <input type="text" id="username" placeholder="Masukkan username" required />
+  <label>Upload PFP :</label>
+  <input type="file" id="pfpInput" accept="image/*">
 
-  <label for="pfp">Upload Foto Profil:</label>
-  <input type="file" id="pfp" accept="image/*" required />
+  <button onclick="generateID()">Generate ID Card</button>
+</div>
 
-  <button type="submit">Generate ID Card</button>
-</form>
+<!-- Hasil ID Card -->
+<div id="resultCard">
+  <h2 style="letter-spacing:2px;">ID CARD</h2>
+  <img id="pfpFinal">
+  <h3 id="nameFinal"></h3>
+  <p id="idNumber"></p>
 
-<div id="idCardContainer" style="display:none;">
-  <div id="idCard">
-    <img id="pfpPreview" src="" alt="Profile Picture" />
-    <div id="usernameDisplay"></div>
-  </div>
-  <button id="downloadBtn" style="margin-top:20px; padding:10px 20px;">Unduh ID Card</button>
+  <button class="download-btn" onclick="downloadCard()">Download ID Card</button>
 </div>
 
 <script>
-  const form = document.getElementById('userForm');
-  const pfpInput = document.getElementById('pfp');
-  const pfpPreview = document.getElementById('pfpPreview');
-  const usernameInput = document.getElementById('username');
-  const idCardContainer = document.getElementById('idCardContainer');
-  const usernameDisplay = document.getElementById('usernameDisplay');
-  const idCard = document.getElementById('idCard');
-  const downloadBtn = document.getElementById('downloadBtn');
-
-  let uploadedImageDataUrl = '';
-
-  // Preview gambar saat upload
-  pfpInput.addEventListener('change', () => {
-    const file = pfpInput.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        uploadedImageDataUrl = reader.result;
-        pfpPreview.src = uploadedImageDataUrl;
-      };
-      reader.readAsDataURL(file);
-    }
-  });
-
-  // Generate ID card saat submit
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const username = usernameInput.value.trim();
-    if (!uploadedImageDataUrl || !username) return;
-
-    // Tampilkan data ke ID card
-    pfpPreview.src = uploadedImageDataUrl;
-    usernameDisplay.textContent = username;
-
-    // Tampilkan container
-    idCardContainer.style.display = 'block';
-  });
-
-  // Fungsi download ID card
-  downloadBtn.addEventListener('click', () => {
-    html2canvas(idCard).then(canvas => {
-      const link = document.createElement('a');
-      link.download = 'id_card.png';
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-    });
-  });
-</script>
-
-<!-- Include html2canvas library for capturing ID card as image -->
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-
-</body>
-</html>
+function generateID() {
+  const username = document.getElementById("username").value;
+  const file = document.getElementById
