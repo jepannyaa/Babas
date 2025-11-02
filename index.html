@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Profile Preview</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 40px;
+      background: #f8f9fa;
+    }
+
+    .form-box {
+      width: 300px;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.1);
+    }
+
+    label {
+      font-weight: bold;
+    }
+
+    input[type="text"], input[type="file"] {
+      width: 100%;
+      margin-top: 6px;
+      margin-bottom: 16px;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    .profile-preview {
+      margin-top: 30px;
+      text-align: center;
+      display: none;
+    }
+
+    .profile-preview img {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #0003;
+      margin-bottom: 10px;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background: black;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    button:hover {
+      opacity: 0.85;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- FORM INPUT -->
+  <div class="form-box">
+    <label>Nama :</label>
+    <input type="text" id="nameInput" placeholder="Masukkan nama...">
+
+    <label>Send file pfp :</label>
+    <input type="file" id="pfpInput" accept="image/*">
+
+    <button onclick="showProfile()">Submit</button>
+  </div>
+
+  <!-- HASIL PREVIEW -->
+  <div class="profile-preview" id="previewBox">
+    <img id="pfpImage">
+    <h2 id="nameOutput"></h2>
+  </div>
+
+  <script>
+    function showProfile() {
+      const name = document.getElementById("nameInput").value;
+      const file = document.getElementById("pfpInput").files[0];
+
+      if (!name || !file) {
+        alert("Isi nama dan pilih foto dulu!");
+        return;
+      }
+
+      // Tampilkan nama
+      document.getElementById("nameOutput").textContent = name;
+
+      // Tampilkan foto
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById("pfpImage").src = e.target.result;
+        document.getElementById("previewBox").style.display = "block";
+      };
+      reader.readAsDataURL(file);
+    }
+  </script>
+
+</body>
+</html>
